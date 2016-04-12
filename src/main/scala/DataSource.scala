@@ -86,10 +86,38 @@ class DataSource(val dsp: DataSourceParams)
         viewEvent
       }.cache()
 
+    // get all "user" "buy" "item" events
+    val buyEventsRDD: RDD[BuyEvent] = PEventStore.find(
+      appName = dsp.appName,
+      entityType = Some("user"),
+      eventNames = Some(List("buy")),
+      // targetEntityType is optional field of an event.
+      targetEntityType = Some(Some("item")))(sc)
+      // eventsDb.find() returns RDD[Event]
+      .map { event =>
+      val buyEvent = try {
+        event.event match {
+          case "buy" => BuyEvent(
+            user = event.entityId,
+            item = event.targetEntityId.get,
+            t = event.eventTime.getMillis)
+          case _ => throw new Exception(s"Unexpected event ${event} is read.")
+        }
+      } catch {
+        case e: Exception => {
+          logger.error(s"Cannot convert ${event} to BuyEvent." +
+            s" Exception: ${e}.")
+          throw e
+        }
+      }
+      buyEvent
+    }.cache()
+
     new TrainingData(
       users = usersRDD,
       items = itemsRDD,
-      viewEvents = viewEventsRDD
+      viewEvents = viewEventsRDD,
+      buyEvents = buyEventsRDD
     )
   }
 }
@@ -100,10 +128,13 @@ case class Item(categories: Option[List[String]])
 
 case class ViewEvent(user: String, item: String, t: Long)
 
+case class BuyEvent(user: String, item: String, t: Long)
+
 class TrainingData(
   val users: RDD[(String, User)],
   val items: RDD[(String, Item)],
-  val viewEvents: RDD[ViewEvent]
+  val viewEvents: RDD[ViewEvent],
+  val buyEvents: RDD[BuyEvent]
 ) extends Serializable {
   override def toString = {
     s"users: [${users.count()} (${users.take(2).toList}...)]" +
