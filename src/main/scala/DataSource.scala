@@ -12,6 +12,7 @@ import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
 
 import grizzled.slf4j.Logger
+import org.apache.spark.sql.hive.HiveContext
 
 case class DataSourceParams(appName: String) extends Params
 
@@ -21,103 +22,69 @@ class DataSource(val dsp: DataSourceParams)
 
   @transient lazy val logger = Logger[this.type]
 
+
+
+  def whileLoop(condition: => Boolean)(command: => Unit) {
+    if (condition) {
+      command; whileLoop(condition)(command)
+    } else ()
+  }
+
+
+
+
   override
   def readTraining(sc: SparkContext): TrainingData = {
 
+    val sqlContext = new HiveContext(sc)
+    val comSaleOrderDf = sqlContext.sql("select salord_id_account_buyer, salord_id_product, unix_timestamp(salord_date_sale_order) from core.com_sale_order where to_date(salord_date_sale_order) > to_date('2014-01-01')")
     // create a RDD of (entityID, User)
-    val usersRDD: RDD[(String, User)] = PEventStore.aggregateProperties(
-      appName = dsp.appName,
-      entityType = "user"
-    )(sc).map { case (entityId, properties) =>
+    val usersRDD: RDD[(String, User)] = comSaleOrderDf.map { case row =>
       val user = try {
         User()
       } catch {
         case e: Exception => {
-          logger.error(s"Failed to get properties ${properties} of" +
-            s" user ${entityId}. Exception: ${e}.")
+          logger.error(s"Failed to get properties of" +
+            s" user ${row.getString(0)}. Exception: ${e}.")
           throw e
         }
       }
-      (entityId, user)
+      (row.getString(0), user)
     }.cache()
+
 
     // create a RDD of (entityID, Item)
-    val itemsRDD: RDD[(String, Item)] = PEventStore.aggregateProperties(
-      appName = dsp.appName,
-      entityType = "item"
-    )(sc).map { case (entityId, properties) =>
-      val item = try {
-        // Assume categories is optional property of item.
-        Item(categories = properties.getOpt[List[String]]("categories"))
+    val itemsRDD: RDD[(String, Item)] = comSaleOrderDf.map { case row =>
+      val item = try{
+        Item(categories = Option[List[String]](List("")))
       } catch {
         case e: Exception => {
-          logger.error(s"Failed to get properties ${properties} of" +
-            s" item ${entityId}. Exception: ${e}.")
+          logger.error(s"Failed to get properties of item ${row.get(1)}. Exception: ${e}.")
           throw e
         }
       }
-      (entityId, item)
+      (row.getString(1), item)
     }.cache()
 
-    // get all "user" "view" "item" events
-    val viewEventsRDD: RDD[ViewEvent] = PEventStore.find(
-      appName = dsp.appName,
-      entityType = Some("user"),
-      eventNames = Some(List("view")),
-      // targetEntityType is optional field of an event.
-      targetEntityType = Some(Some("item")))(sc)
-      // eventsDb.find() returns RDD[Event]
-      .map { event =>
-        val viewEvent = try {
-          event.event match {
-            case "view" => ViewEvent(
-              user = event.entityId,
-              item = event.targetEntityId.get,
-              t = event.eventTime.getMillis)
-            case _ => throw new Exception(s"Unexpected event ${event} is read.")
-          }
+    val viewEventsRDD: RDD[ViewEvent] = comSaleOrderDf.map { case row =>
+        val viewEvent = try{
+          ViewEvent(user = row.getString(0),
+                            item = row.getString(1),
+                            t = row.getLong(2))
         } catch {
           case e: Exception => {
-            logger.error(s"Cannot convert ${event} to ViewEvent." +
-              s" Exception: ${e}.")
+            logger.error(s"Cannot convert viewEvent. Exception: ${e}")
             throw e
           }
         }
         viewEvent
-      }.cache()
-
-    // get all "user" "buy" "item" events
-    val buyEventsRDD: RDD[BuyEvent] = PEventStore.find(
-      appName = dsp.appName,
-      entityType = Some("user"),
-      eventNames = Some(List("buy")),
-      // targetEntityType is optional field of an event.
-      targetEntityType = Some(Some("item")))(sc)
-      // eventsDb.find() returns RDD[Event]
-      .map { event =>
-      val buyEvent = try {
-        event.event match {
-          case "buy" => BuyEvent(
-            user = event.entityId,
-            item = event.targetEntityId.get,
-            t = event.eventTime.getMillis)
-          case _ => throw new Exception(s"Unexpected event ${event} is read.")
-        }
-      } catch {
-        case e: Exception => {
-          logger.error(s"Cannot convert ${event} to BuyEvent." +
-            s" Exception: ${e}.")
-          throw e
-        }
-      }
-      buyEvent
     }.cache()
+
 
     new TrainingData(
       users = usersRDD,
       items = itemsRDD,
-      viewEvents = viewEventsRDD,
-      buyEvents = buyEventsRDD
+      viewEvents = viewEventsRDD
     )
   }
 }
@@ -128,13 +95,12 @@ case class Item(categories: Option[List[String]])
 
 case class ViewEvent(user: String, item: String, t: Long)
 
-case class BuyEvent(user: String, item: String, t: Long)
+//case class BuyEvent(user: String, item: String, t: Long)
 
 class TrainingData(
   val users: RDD[(String, User)],
   val items: RDD[(String, Item)],
-  val viewEvents: RDD[ViewEvent],
-  val buyEvents: RDD[BuyEvent]
+  val viewEvents: RDD[ViewEvent]
 ) extends Serializable {
   override def toString = {
     s"users: [${users.count()} (${users.take(2).toList}...)]" +
