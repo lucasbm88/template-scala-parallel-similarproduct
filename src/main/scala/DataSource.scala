@@ -48,7 +48,7 @@ class DataSource(val dsp: DataSourceParams)
         }
       }
       (row.getString(0), user)
-    }.cache()
+    }
 
 
     // create a RDD of (entityID, Item)
@@ -62,7 +62,7 @@ class DataSource(val dsp: DataSourceParams)
         }
       }
       (row.getString(1), item)
-    }.cache()
+    }
 
     val viewEventsRDD: RDD[ViewEvent] = comSaleOrderDf.map { case row =>
         val viewEvent = try{
@@ -76,7 +76,7 @@ class DataSource(val dsp: DataSourceParams)
           }
         }
         viewEvent
-    }.cache()
+    }
 
 
     new TrainingData(
