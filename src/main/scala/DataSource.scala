@@ -35,7 +35,7 @@ class DataSource(val dsp: DataSourceParams)
   def readTraining(sc: SparkContext): TrainingData = {
 
     val sqlContext = new HiveContext(sc)
-    val comSaleOrderDf = sqlContext.sql("select salord_id_account_buyer, salord_id_product, unix_timestamp(salord_date_sale_order) from core.com_sale_order where to_date(salord_date_sale_order) > to_date('2016-04-01')")
+    val comSaleOrderDf = sqlContext.sql("select salord_id_account_buyer, salord_id_product, unix_timestamp(salord_date_sale_order) from core.com_sale_order where to_date(salord_date_sale_order) > to_date('2016-06-01')")
     // create a RDD of (entityID, User)
     val usersRDD: RDD[(String, User)] = comSaleOrderDf.map { case row =>
       val user = try {
