@@ -59,10 +59,13 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       " Please check if DataSource generates TrainingData" +
       " and Preprator generates PreparedData correctly.")
     // create User and item's String ID to integer index BiMap
+    logger.debug(s"Create user string ID")
     val userStringIntMap = BiMap.stringInt(data.users.keys)
+    logger.debug(s"Create item string ID")
     val itemStringIntMap = BiMap.stringInt(data.items.keys)
 
     // collect Item as Map and convert ID to Int index
+    logger.debug("Collect item as Map, convert ID to int index")
     val items: Map[Int, Item] = data.items.map { case (id, item) =>
       (itemStringIntMap(id), item)
     }.collectAsMap.toMap
@@ -100,6 +103,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
     // seed for MLlib ALS
     val seed = ap.seed.getOrElse(System.nanoTime)
 
+    logger.debug(s"Define m")
     val m = ALS.trainImplicit(
       ratings = mllibRatings,
       rank = ap.rank,
@@ -121,6 +125,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
     val productFeatures = model.productFeatures
 
     // convert items to Int index
+    logger.debug(s"convert items to Int index")
     val queryList: Set[Int] = query.items.map(model.itemStringIntMap.get(_))
       .flatten.toSet
 
@@ -152,7 +157,8 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
         .seq // convert back to sequential collection
         .toArray
     }
-
+    
+    logger.debug(s"Define filteredScore")
     val filteredScore = indexScores.view.filter { case (i, v) =>
       isCandidateItem(
         i = i,
@@ -164,6 +170,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       )
     }
 
+    logger.debug(s"Define topScores")
     val topScores = getTopN(filteredScore, query.num)(ord).toArray
 
     val itemScores = topScores.map { case (i, s) =>
@@ -180,7 +187,6 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
   def getTopN[T](s: Seq[T], n: Int)(implicit ord: Ordering[T]): Seq[T] = {
 
     val q = PriorityQueue()
-
     for (x <- s) {
       if (q.size < n)
         q.enqueue(x)
