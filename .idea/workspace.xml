@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="24dee192-063a-463e-9017-8e9af4c486f4" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/DataSource.scala" afterPath="$PROJECT_DIR$/src/main/scala/DataSource.scala" />
-    </list>
+    <list default="true" id="24dee192-063a-463e-9017-8e9af4c486f4" name="Default" comment="" />
     <ignored path="template-scala-parallel-similarproduct.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
