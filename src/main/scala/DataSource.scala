@@ -40,7 +40,7 @@ class DataSource(val dsp: DataSourceParams)
       "unix_timestamp(salord_date_sale_order) from core.com_sale_order where to_date(salord_date_sale_order) > to_date("+dsp.startDate+")")
 
     // create a RDD of (entityID, User)
-    logger.debug(s"Creating user RDDs")s
+    logger.debug(s"Creating user RDDs")
     val usersRDD: RDD[(String, User)] = comSaleOrderDf.map { case row =>
       val user = try {
         User()
