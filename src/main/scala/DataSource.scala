@@ -36,7 +36,7 @@ class DataSource(val dsp: DataSourceParams)
     
     logger.debug(s"Changing to HiveContext")
     val sqlContext = new HiveContext(sc)
-    val comSaleOrderDf = sqlContext.sql("select salord_id_account_buyer, salord_id_product, unix_timestamp(salord_date_sale_order) from core.com_sale_order where to_date(salord_date_sale_order) > to_date('2016-06-08')")
+    val comSaleOrderDf = sqlContext.sql("select salord_id_account_buyer, salord_id_product, unix_timestamp(salord_date_sale_order) from core.com_sale_order where to_date(salord_date_sale_order) > to_date('2016-04-08')")
 
     // create a RDD of (entityID, User)
     logger.debug(s"Creating user RDDs")
