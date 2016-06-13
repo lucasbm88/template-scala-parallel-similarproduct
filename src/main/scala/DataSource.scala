@@ -119,12 +119,12 @@ class TrainingData (
     println(toString())
 
     // memory info
-    val mb = 1024*1024
-    val runtime = Runtime.getRuntime
-    logger.log("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
-    logger.log("** Free Memory:  " + runtime.freeMemory / mb)
-    logger.log("** Total Memory: " + runtime.totalMemory / mb)
-    logger.log("** Max Memory:   " + runtime.maxMemory / mb)
+    val mem = 1024*1024
+    val runtime = Runtime.getRuntime;
+    logger.info("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mem)
+    logger.info("** Free Memory:  " + runtime.freeMemory / mem)
+    logger.info("** Total Memory: " + runtime.totalMemory / mem)
+    logger.info("** Max Memory:   " + runtime.maxMemory / mem)
 
   }
 }
