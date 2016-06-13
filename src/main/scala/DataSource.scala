@@ -14,6 +14,8 @@ import org.apache.spark.rdd.RDD
 import grizzled.slf4j.Logger
 import org.apache.spark.sql.hive.HiveContext
 
+import io.prediction.controller.SanityCheck
+
 case class DataSourceParams(appName: String, startDate: String) extends Params
 
 class DataSource(val dsp: DataSourceParams)
@@ -113,7 +115,7 @@ class TrainingData (
       s"viewEvents: [${viewEvents.count()}] (${viewEvents.take(2).toList}...)"
   }
 
-  override def SanityCheck(): Unit = {
+  override def sanityCheck(): Unit = {
     println(toString())
 
   }
