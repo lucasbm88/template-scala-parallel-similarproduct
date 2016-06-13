@@ -113,8 +113,8 @@ class TrainingData (
       s"viewEvents: [${viewEvents.count()}] (${viewEvents.take(2).toList}...)"
   }
 
-  override def sanityCheck(): Unit = {
+  override def SanityCheck(): Unit = {
     println(toString())
-    
+
   }
 }
