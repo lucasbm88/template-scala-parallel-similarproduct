@@ -118,5 +118,13 @@ class TrainingData (
   override def sanityCheck(): Unit = {
     println(toString())
 
+    // memory info
+    val mb = 1024*1024
+    val runtime = Runtime.getRuntime
+    logger.log("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
+    logger.log("** Free Memory:  " + runtime.freeMemory / mb)
+    logger.log("** Total Memory: " + runtime.totalMemory / mb)
+    logger.log("** Max Memory:   " + runtime.maxMemory / mb)
+
   }
 }
