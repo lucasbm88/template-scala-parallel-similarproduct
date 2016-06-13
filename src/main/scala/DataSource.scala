@@ -21,7 +21,7 @@ class DataSource(val dsp: DataSourceParams)
       EmptyEvaluationInfo, Query, EmptyActualResult] {
 
   @transient lazy val logger = Logger[this.type]
-
+  Logger.getRootLogger().setLevel(Level.DEBUG);
 
 
   def whileLoop(condition: => Boolean)(command: => Unit) {
@@ -34,19 +34,17 @@ class DataSource(val dsp: DataSourceParams)
   override
   def readTraining(sc: SparkContext): TrainingData = {
 
-    logger.debug(s"Changing to HiveContext")
+    logger.info(s"_________________Changing to HiveContext")
+    logger.debug(s"_________________DEBUG")
 
-    logger.debug(s"_____SHOWING DEBUG______")
-    logger.trace(s"_____SHOWING TRACE______")
-    logger.info(s"_____SHOWING INFO______")
-    logger.warn(s"_____SHOWING WARN______")
-    
+    Logger.getRootLogger().setLevel(Level.DEBUG);
+
     val sqlContext = new HiveContext(sc)
     val comSaleOrderDf = sqlContext.sql("select salord_id_account_buyer, salord_id_product, " +
       "unix_timestamp(salord_date_sale_order) from core.com_sale_order where to_date(salord_date_sale_order) > to_date("+dsp.startDate+")")
 
     // create a RDD of (entityID, User)
-    logger.debug(s"Creating user RDDs")
+    logger.info(s"Creating user RDDs")
     val usersRDD: RDD[(String, User)] = comSaleOrderDf.map { case row =>
       val user = try {
         User()
@@ -62,7 +60,7 @@ class DataSource(val dsp: DataSourceParams)
 
 
     // create a RDD of (entityID, Item)
-    logger.debug(s"Creating item RDDs")
+    logger.info(s"Creating item RDDs")
     val itemsRDD: RDD[(String, Item)] = comSaleOrderDf.map { case row =>
       val item = try{
         Item(categories = Option[List[String]](List("")))
@@ -75,7 +73,7 @@ class DataSource(val dsp: DataSourceParams)
       (row.getString(1), item)
     }
     
-    logger.debug(s"Creating ViewEvent RDDs")
+    logger.info(s"Creating ViewEvent RDDs")
     val viewEventsRDD: RDD[ViewEvent] = comSaleOrderDf.map { case row =>
         val viewEvent = try{
           ViewEvent(user = row.getString(0),
@@ -90,7 +88,7 @@ class DataSource(val dsp: DataSourceParams)
         viewEvent
     }
 
-    logger.debug(s"Creating new TrainingData")
+    logger.info(s"Creating new TrainingData")
     new TrainingData(
       users = usersRDD,
       items = itemsRDD,
