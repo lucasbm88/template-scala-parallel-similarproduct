@@ -58,10 +58,11 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       s"items in PreparedData cannot be empty." +
       " Please check if DataSource generates TrainingData" +
       " and Preprator generates PreparedData correctly.")
+
     // create User and item's String ID to integer index BiMap
-    logger.info(s"Create user string ID")
+    logger.info(s"___Create user string ID___")
     val userStringIntMap = BiMap.stringInt(data.users.keys)
-    logger.info(s"Create item string ID")
+    logger.info(s"___Create item string ID___")
     val itemStringIntMap = BiMap.stringInt(data.items.keys)
 
     // collect Item as Map and convert ID to Int index
