@@ -118,6 +118,7 @@ class TrainingData (
   override def sanityCheck(): Unit = {
     println(toString())
 
+    @transient lazy val logger = Logger[this.type]g
     // memory info
     val mem = 1024*1024
     val runtime = Runtime.getRuntime;
