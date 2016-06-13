@@ -32,7 +32,7 @@ class DataSource(val dsp: DataSourceParams)
   override
   def readTraining(sc: SparkContext): TrainingData = {
 
-    logger.info(s"___[DS]Changing data to HiveContext___")
+    logger.info(s"___Changing data to HiveContext___")
 
 
     val sqlContext = new HiveContext(sc)
@@ -40,7 +40,7 @@ class DataSource(val dsp: DataSourceParams)
       "unix_timestamp(salord_date_sale_order) from core.com_sale_order where to_date(salord_date_sale_order) > to_date("+dsp.startDate+")")
 
     // create a RDD of (entityID, User)
-    logger.info(s"___[DS]CREATING USER RDDS___")
+    logger.info(s"___Creating User RDDS___")
     val usersRDD: RDD[(String, User)] = comSaleOrderDf.map { case row =>
       val user = try {
         User()
@@ -101,14 +101,20 @@ case class ViewEvent(user: String, item: String, t: Long)
 
 //case class BuyEvent(user: String, item: String, t: Long)
 
-class TrainingData(
+class TrainingData (
   val users: RDD[(String, User)],
   val items: RDD[(String, Item)],
   val viewEvents: RDD[ViewEvent]
-) extends Serializable {
+  ) extends Serializable with SanityCheck{
+
   override def toString = {
-    s"users: [${users.count()} (${users.take(2).toList}...)]" +
-    s"items: [${items.count()} (${items.take(2).toList}...)]" +
-    s"viewEvents: [${viewEvents.count()}] (${viewEvents.take(2).toList}...)"
+      s"users: [${users.count()} (${users.take(2).toList}...)]" +
+      s"items: [${items.count()} (${items.take(2).toList}...)]" +
+      s"viewEvents: [${viewEvents.count()}] (${viewEvents.take(2).toList}...)"
+  }
+
+  override def sanityCheck(): Unit = {
+    println(toString())
+    
   }
 }
