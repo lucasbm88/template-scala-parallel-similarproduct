@@ -21,8 +21,6 @@ class DataSource(val dsp: DataSourceParams)
       EmptyEvaluationInfo, Query, EmptyActualResult] {
 
   @transient lazy val logger = Logger[this.type]
-  Logger.getRootLogger().setLevel(Level.DEBUG);
-
 
   def whileLoop(condition: => Boolean)(command: => Unit) {
     if (condition) {
