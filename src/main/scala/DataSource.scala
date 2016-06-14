@@ -119,13 +119,6 @@ class TrainingData (
     println(toString())
 
     @transient lazy val logger = Logger[this.type]
-    // memory info
-    val mem = 1024*1024
-    val runtime = Runtime.getRuntime;
-    logger.info("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mem)
-    logger.info("** Free Memory:  " + runtime.freeMemory / mem)
-    logger.info("** Total Memory: " + runtime.totalMemory / mem)
-    logger.info("** Max Memory:   " + runtime.maxMemory / mem)
 
   }
 }
